@@ -21,9 +21,7 @@ export class AuthService {
       data: {
         email: data.email.toLowerCase(),
         passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
+        fullName: data.fullName
       },
     });
 

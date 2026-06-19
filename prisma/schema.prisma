@@ -13,8 +13,7 @@ model User {
   email           String    @unique
   phone           String?   @unique
   passwordHash    String
-  firstName       String?
-  lastName        String?
+  fullName        String?
   tier            Tier      @default(BASIC)
   kycStatus       KycStatus @default(NOT_SUBMITTED)
   businessDetails Json? // For business users
