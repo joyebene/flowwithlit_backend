@@ -22,7 +22,7 @@ app.get('/', (req: Request, res: Response) => {
     res.send('Hello, Flowlit!');
 });
 
-app.use('/api', rootRoutes);
+app.use('/api/v1', rootRoutes);
 
 // Global error handler
 app.use(errorHandler);
