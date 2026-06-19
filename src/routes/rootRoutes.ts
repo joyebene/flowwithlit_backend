@@ -4,6 +4,7 @@ import userRoutes from "./user"
 import kycRoutes from "./kyc";
 import accountRoutes from "./account";
 import transactionRoutes from "./transaction";
+import paymentRoutes from "./payment";
 
 const rootRoutes = Router();
 
@@ -15,6 +16,7 @@ rootRoutes.use('/auth', authRoutes);
 rootRoutes.use('/user', userRoutes);
 rootRoutes.use('/kyc', kycRoutes);
 rootRoutes.use('/account', accountRoutes);
-rootRoutes.use("/tansaction", transactionRoutes);
+rootRoutes.use("/transaction", transactionRoutes);
+rootRoutes.use("/payment", paymentRoutes);
 
 export default rootRoutes;

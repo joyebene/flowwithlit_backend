@@ -11,6 +11,6 @@ const router = Router();
 
 router.get('/me', protect, getProfile);
 router.patch('/me', protect, updateProfile);
-router.patch('/chnage-password', changePassword);
+router.patch('/change-password', changePassword);
 
 export default router;

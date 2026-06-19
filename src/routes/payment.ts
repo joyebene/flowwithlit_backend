@@ -13,3 +13,5 @@ router.post(
 
 //webhook
 router.post("/webhook/palmpay", palmpayWebhook);
+
+export default router;
