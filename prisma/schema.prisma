@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String
+  firstName       String?
+  lastName        String?
+  tier            Tier      @default(BASIC)
+  kycStatus       KycStatus @default(NOT_SUBMITTED)
+  businessDetails Json? // For business users
+  bvn             String?
+  nin             String?
+
+  kycSubmittedAt  DateTime?
+  kycApprovedAt   DateTime?
+
+  dateOfBirth     DateTime?
+  address         String?
+
+  cacNumber       String?
+  businessName    String?
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  profileImage    String?
+  referralCode    String?   @unique
+  referredById    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  otps          Otp[]
+  accounts      Account[]
+  virtualAccout VirtualAccount[]
+  cryptoWallets CryptoWallet[]
+  transactions  Transaction[]
+  refreshTokens RefreshToken[]
+  sessions      Session[]
+  apiKey        ApiKey[]
+  referredUsers User[]         @relation("UserReferrals")
+  referrer      User?          @relation("UserReferrals", fields: [referredById], references: [id])
+
+  @@map("users")
+}
+
+enum OtpPurpose {
+  EMAIL_VERIFICATION
+  FORGOT_PASSWORD
+}
+
+model Otp {
+  id        String     @id @default(cuid())
+  code      String
+  expiresAt DateTime
+  purpose   OtpPurpose
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relation to User
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, purpose])
+}
+
+model Account {
+  id               String      @id @default(cuid())
+  userId           String
+  type             AccountType
+  currency         String // NGN, USD, USDT, BTC, etc.
+  balance          Decimal     @default(0)
+  availableBalance Decimal     @default(0)
+  isActive         Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, currency])
+  @@map("accounts")
+}
+
+model RefreshToken {
+  id                String   @id @default(cuid())
+  tokenHash         String   @unique
+  userId            String
+  deviceFingerprint String?
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Session {
+  id                String   @id @default(cuid())
+  userId            String
+  deviceFingerprint String
+  ipAddress         String?
+  userAgent         String?
+  lastActiveAt      DateTime @updatedAt
+  expiresAt         DateTime
+  isActive          Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+enum Tier {
+  BASIC
+  VERIFIED
+  PREMIUM
+  BUSINESS
+}
+
+enum KycStatus {
+  NOT_SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AccountType {
+  FIAT
+  CRYPTO
+  CARD
+}
+
+model CryptoWallet {
+  id        String   @id @default(cuid())
+  address   String   @unique
+  balance   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relation to User
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+  P2P
+  CONVERSION
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+model Transaction {
+  id             String   @id @default(cuid())
+  reference      String   @unique
+
+  userId         String
+
+  amount         Decimal
+  fee            Decimal @default(0)
+
+  currency       String
+
+  type           TransactionType
+  status         TransactionStatus
+
+  description    String?
+
+  metadata       Json?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model VirtualAccount {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+
+  accountNumber String   @unique
+  bankName      String
+  provider      String   // PalmPay, etc
+
+  isActive      Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String   @unique
+  secretHash  String
+  environment String   // test | live
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
