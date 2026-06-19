@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "build": "prisma db push && prisma generate && tsc", && tsc-alias",
-    "start": "node -r tsconfig-paths/register dist/server.js",
+    "build": "prisma db push && prisma generate && tsc && tsc-alias",
+    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts"
   },
