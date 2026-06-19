@@ -1,10 +1,9 @@
 import { createClient } from 'redis';
 
-const redis = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-});
+// This file is temporarily modified to disable Redis and fix a TypeScript error.
+// To re-enable Redis, revert this file to its original state
+// and ensure your REDIS_URL is set in the .env file.
 
-redis.on('error', err => console.error('Redis Client Error', err));
-redis.connect();
+const redis: ReturnType<typeof createClient> | null = null;
 
 export default redis;

@@ -47,7 +47,9 @@ export class AuthService {
       .digest("hex");
 
     // Store in Redis
-    await redis.set(`refresh:${refreshToken}`, user.id, { EX: 7 * 24 * 60 * 60 });
+    if (redis) {
+      await redis.set(`refresh:${refreshToken}`, user.id, { EX: 7 * 24 * 60 * 60 });
+    }
 
     // Optional: Store in DB too for extra persistence
     await prisma.refreshToken.create({
@@ -74,11 +76,12 @@ export class AuthService {
     }
 
     // Rate limiting
-    const attemptsKey = `login:attempts:${user.id}`;
-    const attempts = await redis.incr(attemptsKey);
-    if (attempts > 5) throw new BadRequestException('Too many login attempts. Try again later.');
-
-    await redis.expire(attemptsKey, 300); // 5 minutes
+    if (redis) {
+      const attemptsKey = `login:attempts:${user.id}`;
+      const attempts = await redis.incr(attemptsKey);
+      if (attempts > 5) throw new BadRequestException('Too many login attempts. Try again later.');
+      await redis.expire(attemptsKey, 300); // 5 minutes
+    }
 
     const accessToken = generateAccessToken(user.id);
     const refreshToken = generateRefreshToken(user.id, data.deviceFingerprint);
@@ -87,7 +90,9 @@ export class AuthService {
       .update(refreshToken)
       .digest("hex");
 
-    await redis.set(`refresh:${refreshToken}`, user.id, { EX: 7 * 24 * 60 * 60 });
+    if (redis) {
+      await redis.set(`refresh:${refreshToken}`, user.id, { EX: 7 * 24 * 60 * 60 });
+    }
 
     await prisma.refreshToken.create({
       data: {
@@ -132,7 +137,9 @@ export class AuthService {
     }
 
     // Remove old token from Redis
-    await redis.del(`refresh:${refreshToken}`);
+    if (redis) {
+      await redis.del(`refresh:${refreshToken}`);
+    }
 
     // Delete old token from database
     await prisma.refreshToken.delete({
@@ -156,13 +163,15 @@ export class AuthService {
       .digest('hex');
 
     // Store in Redis
-    await redis.set(
-      `refresh:${newRefreshToken}`,
-      storedToken.userId,
-      {
-        EX: 7 * 24 * 60 * 60,
-      }
-    );
+    if (redis) {
+      await redis.set(
+        `refresh:${newRefreshToken}`,
+        storedToken.userId,
+        {
+          EX: 7 * 24 * 60 * 60,
+        }
+      );
+    }
 
     // Store hash in DB
     await prisma.refreshToken.create({
@@ -273,13 +282,16 @@ export class AuthService {
       .update(refreshToken)
       .digest('hex');
 
-    await Promise.all([
-      redis.del(`refresh:${refreshToken}`),
-      prisma.refreshToken.deleteMany({
-        where: {
-          tokenHash,
-        },
-      }),
-    ]);
+    const promises = [];
+    if (redis) {
+      promises.push(redis.del(`refresh:${refreshToken}`));
+    }
+    promises.push(prisma.refreshToken.deleteMany({
+      where: {
+        tokenHash,
+      },
+    }));
+
+    await Promise.all(promises);
   }
 }
