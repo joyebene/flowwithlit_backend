@@ -21,7 +21,7 @@ export class PaymentService {
 
         //call provider
         const response = await palmpay.createVirtualAccount({
-            name: `${user.firstName} ${user.lastName}`,
+            name: user.fullName!,
             email: user.email,
             phone: user.phone || ""
         });
