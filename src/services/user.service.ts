@@ -1,6 +1,6 @@
 import { BadRequestException, UnauthorizedException } from "@/utils/error";
 import { PrismaClient } from "@prisma/client"
-import bcrypt from "node_modules/bcryptjs";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
