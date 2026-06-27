@@ -1,3 +1,4 @@
+import { ZodError } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
 import { AppError, ConflictException, ZodValidationException } from '@/utils/error';
@@ -17,9 +18,17 @@ export const errorHandler = (
     }
   }
 
-  // Zod Validation Error (if you're using Zod)
-  if (err.name === 'ZodError') {
-    error = new ZodValidationException(err.message);
+  // Zod Validation Error
+  if (err instanceof ZodError) {
+    const formattedErrors = err.errors.map((e) => ({
+      path: e.path.join('.'),
+      message: e.message,
+    }));
+    return res.status(400).json({
+      status: 'error',
+      message: 'Validation failed',
+      errors: formattedErrors,
+    });
   }
 
   // Operational (trusted) errors
